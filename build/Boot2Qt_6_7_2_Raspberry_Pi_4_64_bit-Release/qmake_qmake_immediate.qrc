@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+<file alias="images/mm_20_red.png">/media/kevin/external/QtProject/MapsSerialCopy/images/mm_20_red.png</file>
+</qresource>
+</RCC>
