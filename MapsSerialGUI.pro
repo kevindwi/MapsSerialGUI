@@ -1,4 +1,4 @@
-QT += quick
+QT += quick serialport
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -6,7 +6,9 @@ QT += quick
 
 SOURCES += \
         main.cpp \
-        mapcoordinate.cpp
+        mapcoordinate.cpp \
+        mapserial.cpp \
+        serialconnection.cpp
 
 RESOURCES += qml.qrc \
     images/mm_20_red.png
@@ -25,4 +27,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    mapcoordinate.h
+    mapcoordinate.h \
+    mapserial.h \
+    serialconnection.h

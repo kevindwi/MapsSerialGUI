@@ -3,26 +3,28 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Universal
 import QtQuick.Controls.Material
+import QtQuick.Dialogs
 
 import QtLocation
 import QtPositioning
 
-// import com.examples.LabelChange
 import com.mapview.MapCoordinate 1.0
+import com.mapview.SerialConnection 1.0
 
 Window {
-    // width: mainScreen.width
-    // height: mainScreen.height
-
     minimumWidth: 1000
     minimumHeight: 600
 
     visible: true
     Universal.theme: Universal.System
-    title: "Hello"
+    title: "Maps"
 
     MapCoordinate {
-        id: labelChange
+        id: mapCoordinate
+    }
+
+    SerialConnection {
+        id: serialConnection
     }
 
     Rectangle {
@@ -119,7 +121,7 @@ Window {
                 anchors.fill: parent
                 onPressed: mouse => {
                     marker.coordinate = map.toCoordinate(Qt.point(mouse.x, mouse.y))
-                    labelChange.getCoordinates(marker.coordinate.latitude, marker.coordinate.longitude)
+                    mapCoordinate.getCoordinates(marker.coordinate.latitude, marker.coordinate.longitude)
                }
             }
 
@@ -143,6 +145,93 @@ Window {
             }
         }
 
+        ToolBar {
+            id: toolBar
+            x: 0
+            y: 0
+            width: 1000
+            height: 48
+            Material.background: "#fff"
 
+            ComboBox {
+                id: serialPortComboBox
+                x: 8
+                y: 9
+                width: 120
+                height: 30
+
+                model: serialConnection.getPortList()
+
+                background: Rectangle {
+                    radius: 5
+                    border.color: "#95A4A8"
+                    border.width: .5
+                }
+            }
+
+            ComboBox {
+                id: baudRateComboBox
+                x: 136
+                y: 9
+                width: 120
+                height: 30
+
+                model: ["9600", "115200"]
+
+                background: Rectangle {
+                    radius: 5
+                    border.color: "#95A4A8"
+                    border.width: .5
+                }
+            }
+
+            Button {
+                id: button
+                x: 264
+                y: 2
+                width: 105
+                height: 41
+                text: qsTr("Connect")
+
+                onClicked: () => {
+                    // console.log(serialPortComboBox.currentText, baudRateComboBox.currentText)
+                    // messageDialog.visible = true
+                    popup.open()
+                }
+            }
+
+            Button {
+                id: button2
+                x: 378
+                y: 2
+                width: 105
+                height: 41
+                text: qsTr("Close")
+            }
+        }
+
+        MessageDialog {
+            id: messageDialog
+            title: ""
+            text: ""
+            informativeText: ""
+            buttons: MessageDialog.Ok | MessageDialog.Cancel
+            onAccepted: {
+                // console.log("And of course you could only agree.")
+                Qt.quit()
+            }
+            // Component.onCompleted: visible = true
+        }
+
+        Popup {
+            id: popup
+            x: 100
+            y: 100
+            width: 200
+            height: 300
+            modal: true
+            focus: true
+            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+        }
     }
 }
