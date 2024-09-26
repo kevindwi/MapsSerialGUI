@@ -10,7 +10,7 @@ class MapCoordinate : public QObject
 public:
     explicit MapCoordinate(QObject *parent = nullptr);
 
-    Q_INVOKABLE void getCoordinates(float latitude, float longitude);
+    void getCoordinates(double latitude, double longitude);
 
 private:
     float m_endpoint;

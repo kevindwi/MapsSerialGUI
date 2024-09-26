@@ -1,4 +1,4 @@
-QT += quick serialport
+QT += quick serialport widgets quickwidgets positioning
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -29,4 +29,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     mapcoordinate.h \
     mapserial.h \
+    markermodel.h \
     serialconnection.h

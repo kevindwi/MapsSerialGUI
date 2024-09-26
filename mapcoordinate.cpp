@@ -4,7 +4,7 @@ MapCoordinate::MapCoordinate(QObject *parent)
     : QObject{parent}
 {}
 
-void MapCoordinate::getCoordinates(float latitude, float longitude)
+void MapCoordinate::getCoordinates(double latitude, double longitude)
 {
     // m_endpoint = point;
 

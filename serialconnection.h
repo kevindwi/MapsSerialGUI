@@ -13,7 +13,7 @@ public:
     explicit SerialConnection(QObject *parent = nullptr);
     ~SerialConnection();
 
-    Q_INVOKABLE QList<QString> getPortInfo();
+    QList<QString> getPortInfo();
     bool openSerialPort(QString portName, qint32 baudRate);
     void closeSerialPort();
     qint64 writeData(const QByteArray &data);

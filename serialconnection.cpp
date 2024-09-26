@@ -4,10 +4,10 @@ SerialConnection::SerialConnection(QObject *parent)
     : QObject{parent}
     , m_serial(new QSerialPort(this))
 {
-
+    connect(m_serial, &QSerialPort::readyRead, this, &SerialConnection::dataReady);
 }
 
-QList<QString> SerialConnection::getPortList()
+QList<QString> SerialConnection::getPortInfo()
 {
     QList<QString> ports;
 

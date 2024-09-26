@@ -1,17 +1,18 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 
-#include "mapcoordinate.h"
-#include <serialconnection.h>
+#include "mapserial.h"
+#include "markermodel.h"
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
 
-    qmlRegisterType<MapCoordinate>("com.mapview.MapCoordinate", 1, 0, "MapCoordinate");
-    qmlRegisterType<SerialConnection>("com.mapview.SerialConnection", 1, 0, "SerialConnection");
+    qmlRegisterType<MapSerial>("com.mapview.MapSerial", 1, 0, "MapSerial");
+
+    qmlRegisterType<MarkerModel>("com.mapview.MarkerModel", 1, 0, "MarkerModel");
 
     const QUrl url(QStringLiteral("qrc:main.qml"));
     QObject::connect(

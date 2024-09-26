@@ -1,30 +1,38 @@
-import QtQuick
+import QtQuick 2.15
 
 import QtQuick.Controls
-import QtQuick.Controls.Universal
-import QtQuick.Controls.Material
+import QtQuick.Controls.Material 2.12
 import QtQuick.Dialogs
+import QtQuick.Layouts 1.3
 
 import QtLocation
 import QtPositioning
 
-import com.mapview.MapCoordinate 1.0
-import com.mapview.SerialConnection 1.0
+import com.mapview.MapSerial 1.0
+import com.mapview.MarkerModel 1.0
 
 Window {
-    minimumWidth: 1000
+    property bool serialConnected: false
+    property bool isAddingMarker: false
+
+    property var nowCoordinate: [0, 0]
+
+    property var coordinate: undefined
+
+    property var myMarker: null
+
+    minimumWidth: 1200
     minimumHeight: 600
 
     visible: true
-    Universal.theme: Universal.System
     title: "Maps"
 
-    MapCoordinate {
-        id: mapCoordinate
+    MapSerial {
+        id: mapSerial
     }
 
-    SerialConnection {
-        id: serialConnection
+    MarkerModel {
+        id: markerModel
     }
 
     Rectangle {
@@ -34,7 +42,7 @@ Window {
 
         anchors.fill: parent
 
-        // color: Constants.backgroundColor
+        color: "#EAEAEA"
 
         Plugin {
             id: mapPlugin
@@ -51,12 +59,304 @@ Window {
             }
         }
 
+        Column {
+            id: column
+            x: rectangle.width - column.width
+            y: 0
+            width: 350
+
+            height: parent.height
+
+            Column {
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                Label {
+                    id: label
+                    // leftPadding: 20
+                    topPadding: 20
+                    width: 150
+                    text: qsTr("Configuration")
+                }
+
+                Row {
+                    id: row
+                    width: 300
+                    topPadding: 5
+                    spacing: 10
+
+                    ComboBox {
+                        id: portList
+                        width: 145
+                        height: 30
+                        background: Rectangle {
+                            radius: 5
+                        }
+
+                        model: mapSerial.getPortList()
+                    }
+
+                    ComboBox {
+                        id: baudRate
+                        width: 145
+                        height: 30
+                        background: Rectangle {
+                            radius: 5
+                        }
+
+                        model: ["9600", "115200"]
+                    }
+                }
+
+                Button {
+                    id: buttonConnect
+                    anchors.topMargin: 40
+                    width: row.width
+                    height: 45
+
+                    text: serialConnected ? "Close" : "Connect"
+
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#fff"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        id: btnRect
+
+                        property color connectColor : "#4e5bf2"
+                        property color closeColor : "#F44336"
+
+                        color: buttonConnect.hovered ? Qt.darker(serialConnected ? closeColor : connectColor) : serialConnected ? closeColor : connectColor
+                        radius: 5
+                    }
+
+                    onClicked: () => {
+                        if(serialConnected) {
+                            mapSerial.closeConnection()
+                            serialConnected = false;
+                        } else if(mapSerial.startConnection(portList.currentText, parseInt(baudRate.currentText))) {
+                            serialConnected = true;
+                        }
+                    }
+                }
+
+                Label {
+                    id: label2
+                    // leftPadding: 20
+                    topPadding: 10
+                    bottomPadding: 5
+                    width: 150
+                    text: qsTr("Coordinate")
+                }
+
+                ListView {
+                    id: listView
+                    width: row.width
+                    height: 150
+                    model: markerModel
+                    spacing: 5
+                    delegate: MouseArea {
+                        width: column1.width
+                        height: column1.height
+
+                        Column {
+                            id: column1
+                            // spacing: 10
+                            width: row.width
+                            height: 30
+                            // color: colorCode
+
+                            Row {
+                                anchors.fill: parent
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                Text {
+                                    width: 20
+                                    text: index + 1
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                Text {
+                                    width: 90
+                                    text: model.position.latitude.toString().substring(0, 10)
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                Text {
+                                    width: 90
+                                    text: model.position.longitude.toString().substring(0, 10)
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                // Button {
+                                //     id: buttonAction
+                                //     // anchors.topMargin: 40
+                                //     width: 75
+                                //     // height: 40
+
+                                //     text: "Remove"
+
+                                //     // anchors.horizontalCenter: parent.horizontalCenter
+                                //     // Layout.alignment: Qt.AlignVCenter
+
+                                //     contentItem: Text {
+                                //         text: parent.text
+                                //         color: "#fff"
+                                //         horizontalAlignment: Text.AlignHCenter
+                                //         verticalAlignment: Text.AlignVCenter
+                                //     }
+
+                                //     background: Rectangle {
+                                //         id: btnAction
+
+                                //         property color btnColor : "#4e5bf2"
+
+                                //         color: buttonAction.hovered ? Qt.darker(btnColor) : btnColor
+                                //         radius: 5
+                                //     }
+
+                                //     onClicked: () => {
+                                //         console.log(1)
+                                //     }
+                                // }
+                            }
+
+                        }
+
+                        onClicked: {
+                            listView.currentIndex = index;
+                            listView.forceActiveFocus();
+
+                            var m = markerModel
+                            console.log(m.getCoordinate(listView.currentIndex))
+                            markerTemp.coordinate = m.getCoordinate(listView.currentIndex)
+                        }
+                    }
+
+                    highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+                    focus: true
+
+                    onCountChanged: {
+                        listView.currentIndex = -1
+                    }
+
+                    ScrollBar.vertical:  ScrollBar {
+                        // x: parent.width
+                        height: row.height
+                        active: true
+                    }
+                }
+
+                Label {
+                    id: label3
+                    // leftPadding: 20
+                    topPadding: 50
+                    bottomPadding: 5
+                    width: 150
+                    text: qsTr("Marker")
+                }
+
+                Row {
+                    id: row2
+                    width: 300
+                    topPadding: 5
+                    spacing: 10
+
+                    TextField {
+                        id: latitudeTextField
+                        width: 145
+                        height: 25
+                        bottomPadding: 0
+                        topPadding: 0
+                        leftPadding: 6
+                        placeholderText: focus || text ? "" : "latitude"
+                        text: coordinate?.latitude.toString().substring(0, 10) || ""
+                        readOnly: true
+                        selectionColor: "#4e5bf2"
+
+                        cursorDelegate: Rectangle {
+                            visible: latitudeTextField.cursorVisible
+                            color: "#4e5bf2"
+                            width: latitudeTextField.cursorRectangle.width
+                        }
+                        background: Rectangle {
+                            color: latitudeTextField.enabled ? "transparent" : "#353637"
+                            border.color: latitudeTextField.focus ? "#4e5bf2" : "#74777d"
+                            radius: 5
+                        }
+                    }
+
+                    TextField {
+                        id: longitudeTextField
+                        width: 145
+                        height: 25
+                        bottomPadding: 0
+                        topPadding: 0
+                        leftPadding: 6
+                        placeholderText: focus || text ? "" : "longitude"
+                        text: coordinate?.longitude.toString().substring(0, 10) || ""
+                        readOnly: true
+                        selectionColor: "#4e5bf2"
+
+                        cursorDelegate: Rectangle {
+                            visible: longitudeTextField.cursorVisible
+                            color: "#4e5bf2"
+                            width: longitudeTextField.cursorRectangle.width
+                        }
+                        background: Rectangle {
+                            color: longitudeTextField.enabled ? "transparent" : "#353637"
+                            border.color: longitudeTextField.focus ? "#4e5bf2" : "#74777d"
+                            radius: 5
+                        }
+                    }
+                }
+
+                Button {
+                    id: buttonSend
+                    anchors.topMargin: 40
+                    width: row.width
+                    height: 45
+
+                    text: "Send"
+
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#fff"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        id: btnRect2
+
+                        property color btnColor : "#4e5bf2"
+
+                        color: buttonSend.hovered ? Qt.darker(btnColor) : btnColor
+                        radius: 5
+                    }
+
+                    onClicked: () => {
+                        markerModel.addMarker(coordinate)
+                    }
+                }
+            }
+        }
+
         Map {
             id: map
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.rightMargin: 350
             plugin: mapPlugin
             center: QtPositioning.coordinate(-7.313455, 112.727636) // Unesa
-            zoomLevel: 20
+            zoomLevel: 18
             z: 0
 
             // property geoCoordinate startCentroid
@@ -105,33 +405,99 @@ Window {
                 onActivated: map.zoomLevel = Math.round(map.zoomLevel - 1)
             }
 
-            MapQuickItem {
-                id: marker
-                anchorPoint.x: imageMarker.width/4
-                anchorPoint.y: imageMarker.height
+            MapItemView{
+                model: markerModel
+                delegate: mapcomponent
+            }
 
-                sourceItem: Image {
-                    id: imageMarker
-                    source: "images/mm_20_red.png"
+            Component {
+                id: mapcomponent
+                MapQuickItem {
+                    id: marker
+                    anchorPoint.x: markerComponent.width/4
+                    anchorPoint.y: markerComponent.height
+                    coordinate: position
+
+                    sourceItem: Column {
+                        id: markerComponent
+                        Text {
+                            width: 20
+                            text: index + 1
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        Image {
+                            id: image
+                            source: "images/mm_20_red.png"
+                        }
+                    }
+                }
+            }
+
+            MapQuickItem {
+                id: markerTemp
+                anchorPoint.x: markerComponent.width/4
+                anchorPoint.y: markerComponent.height
+                coordinate: myMarker
+
+                sourceItem: Column {
+                    id: markerComponent
+                    Text {
+                        width: 20
+                        text: index + 1
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    Image {
+                        id: image
+                        source: "images/mm_20_red.png"
+                    }
                 }
             }
 
             MouseArea {
-                id: mapArea
                 anchors.fill: parent
-                onPressed: mouse => {
-                    marker.coordinate = map.toCoordinate(Qt.point(mouse.x, mouse.y))
-                    mapCoordinate.getCoordinates(marker.coordinate.latitude, marker.coordinate.longitude)
-               }
+
+                onPressed: (mouse) => {
+                    if(isAddingMarker) {
+                        coordinate = map.toCoordinate(Qt.point(mouse.x,mouse.y))
+
+                        // nowCoordinate[0] = coordinate.latitude.toString().substring(0, 10)
+                        // nowCoordinate[1] = coordinate.longitude.toString().substring(0, 10)
+
+                        // latitudeTextField.text = nowCoordinate[0]
+                        // longitudeTextField.text = nowCoordinate[1]
+
+                        // markerModel.addMarker(coordinate)
+                        markerTemp.coordinate = coordinate
+                        console.log(coordinate)
+                    }
+                    // else {
+                    //     markerTemp.coordinate = null
+                    // }
+                }
             }
 
             RoundButton {
                 id: roundButton
-                x: rectangle.width - 100
-                y: rectangle.height - 100
-                text: "+"
+                text: isAddingMarker ? "\u00d7" : "+"
 
-                Material.background: "#FF7777"
+                contentItem: Text {
+                    text: parent.text
+                    color: "#fff"
+                    font.pixelSize: 23
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.rightMargin: 20
+                anchors.bottomMargin: 20
+
+                Material.background: roundButton.hovered ? Qt.darker("#4e5bf2") : "#4e5bf2"
 
                 property string toolTipText: "Add point"
                 ToolTip.text: toolTipText
@@ -141,97 +507,16 @@ Window {
                     id: ma
                     anchors.fill: parent
                     hoverEnabled: true
+
+                    onPressed: () => {
+                        isAddingMarker = !isAddingMarker
+
+                        if(!isAddingMarker) {
+                            markerTemp.coordinate = null
+                        }
+                    }
                 }
             }
-        }
-
-        ToolBar {
-            id: toolBar
-            x: 0
-            y: 0
-            width: 1000
-            height: 48
-            Material.background: "#fff"
-
-            ComboBox {
-                id: serialPortComboBox
-                x: 8
-                y: 9
-                width: 120
-                height: 30
-
-                model: serialConnection.getPortList()
-
-                background: Rectangle {
-                    radius: 5
-                    border.color: "#95A4A8"
-                    border.width: .5
-                }
-            }
-
-            ComboBox {
-                id: baudRateComboBox
-                x: 136
-                y: 9
-                width: 120
-                height: 30
-
-                model: ["9600", "115200"]
-
-                background: Rectangle {
-                    radius: 5
-                    border.color: "#95A4A8"
-                    border.width: .5
-                }
-            }
-
-            Button {
-                id: button
-                x: 264
-                y: 2
-                width: 105
-                height: 41
-                text: qsTr("Connect")
-
-                onClicked: () => {
-                    // console.log(serialPortComboBox.currentText, baudRateComboBox.currentText)
-                    // messageDialog.visible = true
-                    popup.open()
-                }
-            }
-
-            Button {
-                id: button2
-                x: 378
-                y: 2
-                width: 105
-                height: 41
-                text: qsTr("Close")
-            }
-        }
-
-        MessageDialog {
-            id: messageDialog
-            title: ""
-            text: ""
-            informativeText: ""
-            buttons: MessageDialog.Ok | MessageDialog.Cancel
-            onAccepted: {
-                // console.log("And of course you could only agree.")
-                Qt.quit()
-            }
-            // Component.onCompleted: visible = true
-        }
-
-        Popup {
-            id: popup
-            x: 100
-            y: 100
-            width: 200
-            height: 300
-            modal: true
-            focus: true
-            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
     }
 }
