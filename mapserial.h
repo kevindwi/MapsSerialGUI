@@ -18,20 +18,24 @@ public:
     Q_INVOKABLE QList<QString> getPortList();
     Q_INVOKABLE bool startConnection(QString portName, qint32 baudRate);
     Q_INVOKABLE void closeConnection();
+    Q_INVOKABLE void sendData(QString data);
 
     Q_INVOKABLE void getMarkerCoordinates(double latitude, double longitude);
+    Q_INVOKABLE QGeoCoordinate getCurrentPosition();
 
     QMessageBox messageBox;
+    SerialConnection serial;
 
 private slots:
     void readData(QByteArray data);
 
 private:
-    SerialConnection serial;
+
     QString message;
-    QList<QGeoCoordinate> m_coordinates;
+    QGeoCoordinate m_coordinates;
 
 signals:
+    void dataReceived(QString data, QGeoCoordinate currentCoordinates);
 };
 
 #endif // MAPSERIAL_H

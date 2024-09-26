@@ -11,7 +11,8 @@ SOURCES += \
         serialconnection.cpp
 
 RESOURCES += qml.qrc \
-    images/mm_20_red.png
+    images/mm_20_red.png \
+    images/blue_dot_marker.png
 
 CONFIG += lrelease
 

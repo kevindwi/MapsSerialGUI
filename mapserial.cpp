@@ -4,6 +4,7 @@ MapSerial::MapSerial(QObject *parent)
     : QObject{parent}
 {
     connect(&serial, &SerialConnection::dataReceived, this, &MapSerial::readData);
+    // connect(&serial, &SerialConnection::dataReceived, qmlObject, SLOT(setCurrentCoordinate));
 }
 
 bool MapSerial::startConnection(QString portName, qint32 baudRate)
@@ -35,9 +36,25 @@ void MapSerial::readData(QByteArray data)
     }
 
     if(finished){
-        qDebug() << message.replace("\n", "").split(",");
+        // qDebug() << message.replace("\n", "").split(",");
+        QStringList msgList = message.replace("\n", "").split(",");
+
+        if(msgList.length() == 4)
+        {
+            m_coordinates.setLatitude(msgList[0].toDouble());
+            m_coordinates.setLongitude(msgList[1].toDouble());
+            // qDebug() << m_coordinates;
+        }
+
+        emit dataReceived(message, m_coordinates);
         message.clear();
     }
+}
+
+void MapSerial::sendData(QString data)
+{
+    QByteArray buffer = data.toUtf8() + "\n";
+    serial.writeData(buffer);
 }
 
 QList<QString> MapSerial::getPortList()
@@ -48,4 +65,10 @@ QList<QString> MapSerial::getPortList()
 void MapSerial::getMarkerCoordinates(double latitude, double longitude)
 {
     qDebug() << qSetRealNumberPrecision(10) << latitude << longitude;
+}
+
+
+QGeoCoordinate MapSerial::getCurrentPosition()
+{
+    return m_coordinates;
 }

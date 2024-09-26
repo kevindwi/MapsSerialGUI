@@ -13,10 +13,12 @@ public:
     enum MarkerRoles{positionRole = Qt::UserRole + 1};
 
     Q_INVOKABLE void addMarker(const QGeoCoordinate &coordinate){
-        beginInsertRows(QModelIndex(), rowCount(), rowCount());
-        m_coordinates.append(coordinate);
-        endInsertRows();
-        qDebug() << MarkerModel::positionRole;
+        if(!m_coordinates.contains(coordinate)) {
+            beginInsertRows(QModelIndex(), rowCount(), rowCount());
+            m_coordinates.append(coordinate);
+            endInsertRows();
+            qDebug() << MarkerModel::positionRole;
+        }
     }
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override{

@@ -158,20 +158,21 @@ Window {
                     model: markerModel
                     spacing: 5
                     delegate: MouseArea {
-                        width: column1.width
-                        height: column1.height
+                        // width: column1.width
+                        // height: column1.height
+
+                        width: row.width
+                        height: 30
 
                         Column {
                             id: column1
                             // spacing: 10
-                            width: row.width
-                            height: 30
-                            // color: colorCode
+                            // width: row.width
+                            // height: 30
+                            anchors.fill: parent
 
                             Row {
                                 anchors.fill: parent
-                                anchors.verticalCenter: parent.verticalCenter
-
                                 Text {
                                     width: 20
                                     text: index + 1
@@ -192,38 +193,6 @@ Window {
                                     horizontalAlignment: Text.AlignHCenter
                                     verticalAlignment: Text.AlignVCenter
                                 }
-
-                                // Button {
-                                //     id: buttonAction
-                                //     // anchors.topMargin: 40
-                                //     width: 75
-                                //     // height: 40
-
-                                //     text: "Remove"
-
-                                //     // anchors.horizontalCenter: parent.horizontalCenter
-                                //     // Layout.alignment: Qt.AlignVCenter
-
-                                //     contentItem: Text {
-                                //         text: parent.text
-                                //         color: "#fff"
-                                //         horizontalAlignment: Text.AlignHCenter
-                                //         verticalAlignment: Text.AlignVCenter
-                                //     }
-
-                                //     background: Rectangle {
-                                //         id: btnAction
-
-                                //         property color btnColor : "#4e5bf2"
-
-                                //         color: buttonAction.hovered ? Qt.darker(btnColor) : btnColor
-                                //         radius: 5
-                                //     }
-
-                                //     onClicked: () => {
-                                //         console.log(1)
-                                //     }
-                                // }
                             }
 
                         }
@@ -232,9 +201,8 @@ Window {
                             listView.currentIndex = index;
                             listView.forceActiveFocus();
 
-                            var m = markerModel
-                            console.log(m.getCoordinate(listView.currentIndex))
-                            markerTemp.coordinate = m.getCoordinate(listView.currentIndex)
+                            // markerTemp.
+                            coordinate = markerModel.getCoordinate(listView.currentIndex)
                         }
                     }
 
@@ -334,15 +302,26 @@ Window {
                     background: Rectangle {
                         id: btnRect2
 
-                        property color btnColor : "#4e5bf2"
+                        property color buttonColor : "#4e5bf2"
 
-                        color: buttonSend.hovered ? Qt.darker(btnColor) : btnColor
+                        color: !serialConnected ? Qt.darker(buttonColor) : (buttonSend.hovered ? Qt.darker(buttonColor) : buttonColor)
                         radius: 5
                     }
 
                     onClicked: () => {
-                        markerModel.addMarker(coordinate)
+                        if(serialConnected) {
+                            markerModel.addMarker(coordinate)
+                            var msg = coordinate.latitude.toString().substring(0, 11) + "," + coordinate.longitude.toString().substring(0, 11) + ",0,0"
+                            mapSerial.sendData(msg)
+                        }
                     }
+                }
+
+                TextArea {
+                    id: serialMonitor
+                    width: row.width
+                    // height: 20
+                    text: "hello"
                 }
             }
         }
@@ -444,8 +423,9 @@ Window {
                 sourceItem: Column {
                     id: markerComponent
                     Text {
+                        // property int index: 0
                         width: 20
-                        text: index + 1
+                        text: ""
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -453,6 +433,32 @@ Window {
                     Image {
                         id: image
                         source: "images/mm_20_red.png"
+                    }
+                }
+            }
+
+            MapQuickItem {
+                id: carMarker
+                anchorPoint.x: markerComponent.width/2
+                anchorPoint.y: markerComponent.height/1.6
+                // coordinate: mapSerial.getCurrentPosition()
+
+
+                sourceItem: Column {
+                    id: carMarkerComponent
+                    Text {
+                        // property int index: 0
+                        width: 20
+                        text: ""
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    Image {
+                        id: img
+                        width: 50
+                        height: 50
+                        source: "images/blue_dot_marker.png"
                     }
                 }
             }
@@ -472,11 +478,10 @@ Window {
 
                         // markerModel.addMarker(coordinate)
                         markerTemp.coordinate = coordinate
-                        console.log(coordinate)
+                        // console.log(coordinate)
+                    } else {
+                        markerTemp.coordinate = null
                     }
-                    // else {
-                    //     markerTemp.coordinate = null
-                    // }
                 }
             }
 
@@ -497,7 +502,7 @@ Window {
                 anchors.rightMargin: 20
                 anchors.bottomMargin: 20
 
-                Material.background: roundButton.hovered ? Qt.darker("#4e5bf2") : "#4e5bf2"
+                Material.background: !serialConnected ? Qt.darker("#4e5bf2") : (roundButton.hovered ? Qt.darker("#4e5bf2") : "#4e5bf2")
 
                 property string toolTipText: "Add point"
                 ToolTip.text: toolTipText
@@ -509,12 +514,23 @@ Window {
                     hoverEnabled: true
 
                     onPressed: () => {
-                        isAddingMarker = !isAddingMarker
+                        if(serialConnected) {
+                            isAddingMarker = !isAddingMarker
 
-                        if(!isAddingMarker) {
-                            markerTemp.coordinate = null
+                            if(!isAddingMarker) {
+                                markerTemp.coordinate = null
+                            }
                         }
                     }
+                }
+            }
+
+            Connections {
+                target: mapSerial
+                function onDataReceived(data, currentCoordinates) {
+                    carMarker.coordinate = currentCoordinates
+                    serialMonitor.text = data
+                    // console.log(data)
                 }
             }
         }
