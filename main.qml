@@ -321,7 +321,7 @@ Window {
                     id: serialMonitor
                     width: row.width
                     // height: 20
-                    text: "hello"
+                    text: mapSerial.message
                 }
             }
         }

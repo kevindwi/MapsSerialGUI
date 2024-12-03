@@ -26,12 +26,12 @@ public:
     QMessageBox messageBox;
     SerialConnection serial;
 
+    Q_INVOKABLE QString message;
+
 private slots:
     void readData(QByteArray data);
 
 private:
-
-    QString message;
     QGeoCoordinate m_coordinates;
 
 signals:
