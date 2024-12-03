@@ -72,7 +72,6 @@ Window {
 
                 Label {
                     id: label
-                    // leftPadding: 20
                     topPadding: 20
                     width: 150
                     text: qsTr("Configuration")
@@ -158,17 +157,11 @@ Window {
                     model: markerModel
                     spacing: 5
                     delegate: MouseArea {
-                        // width: column1.width
-                        // height: column1.height
-
                         width: row.width
                         height: 30
 
                         Column {
                             id: column1
-                            // spacing: 10
-                            // width: row.width
-                            // height: 30
                             anchors.fill: parent
 
                             Row {
@@ -201,7 +194,6 @@ Window {
                             listView.currentIndex = index;
                             listView.forceActiveFocus();
 
-                            // markerTemp.
                             coordinate = markerModel.getCoordinate(listView.currentIndex)
                         }
                     }
@@ -311,7 +303,9 @@ Window {
                     onClicked: () => {
                         if(serialConnected) {
                             markerModel.addMarker(coordinate)
-                            var msg = coordinate.latitude.toString().substring(0, 11) + "," + coordinate.longitude.toString().substring(0, 11) + ",0,0"
+
+                            // data untuk di kirim
+                            var msg = coordinate.latitude.toString().substring(0, 11) + "," + coordinate.longitude.toString().substring(0, 11) + "," + coordinate.latitude.toString().substring(0, 11) + "," + coordinate.longitude.toString().substring(0, 11)
                             mapSerial.sendData(msg)
                         }
                     }
@@ -320,8 +314,7 @@ Window {
                 TextArea {
                     id: serialMonitor
                     width: row.width
-                    // height: 20
-                    text: mapSerial.message
+                    text: mapSerial.message ? mapSerial.message : ""
                 }
             }
         }
@@ -423,7 +416,6 @@ Window {
                 sourceItem: Column {
                     id: markerComponent
                     Text {
-                        // property int index: 0
                         width: 20
                         text: ""
                         horizontalAlignment: Text.AlignHCenter

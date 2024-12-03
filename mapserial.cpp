@@ -54,6 +54,7 @@ void MapSerial::readData(QByteArray data)
 void MapSerial::sendData(QString data)
 {
     QByteArray buffer = data.toUtf8() + "\n";
+    qDebug() << buffer;
     serial.writeData(buffer);
 }
 
